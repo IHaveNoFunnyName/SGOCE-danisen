@@ -1,4 +1,8 @@
 <html>
+<head>
+<script src="https://www.gstatic.com/firebasejs/ui/4.5.1/firebase-ui-auth.js"></script>
+<link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.5.1/firebase-ui-auth.css" />
+</head>
 <body>
 <button onclick="danisen.displayPlayers()">Players</button>
 <button onclick="danisen.displayMatches()">Matches</button>
@@ -11,7 +15,9 @@
      https://firebase.google.com/docs/web/setup#available-libraries -->
 <script src="https://www.gstatic.com/firebasejs/7.15.4/firebase-database.js"></script>
 <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-functions.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-auth.js"></script>
 
 <script src=".\danisen.js"></script>
+<div id="firebaseui-auth-container"></div>
     </body>
 </html>
