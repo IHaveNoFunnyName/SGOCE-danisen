@@ -109,6 +109,13 @@ danisen.displayMatches = function() {
     string += "<button onclick='danisen.createMatches()'>Generate Matches</button><br>";
 
     for (var match in danisen.matches) {
+        string += danisen.keytoname(danisen.matches[match].p1) + " vs " + danisen.keytoname(danisen.matches[match].p2);
+        string += "<br>";
+    }
+
+    string += "<br><br> Discord ping copy/paste: <br><br>";
+
+    for (var match in danisen.matches) {
         string += danisen.keytodiscord(danisen.matches[match].p1) + " vs " + danisen.keytodiscord(danisen.matches[match].p2);
         string += "<br>";
     }
