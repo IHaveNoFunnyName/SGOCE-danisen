@@ -17,6 +17,7 @@ firebase.initializeApp(firebaseConfig);
     var uiConfig = {
         callbacks: {
             signInSuccessWithAuthResult: function(authResult, redirectUrl) {
+                document.getElementById("danisen").innerHTML = "<button onclick='danisen.displayPlayers()'>Players</button><button onclick='danisen.displayMatches()'>Matches</button><div id='content'></div>";
                 return false;
             }
         },
@@ -29,11 +30,9 @@ firebase.initializeApp(firebaseConfig);
         // tosUrl and privacyPolicyUrl accept either url string or a callback
         // function.
         // Terms of service url/callback.
-        tosUrl: '<your-tos-url>',
+        tosUrl: function() {},
         // Privacy policy url/callback.
-        privacyPolicyUrl: function() {
-          window.location.assign('<your-privacy-policy-url>');
-        }
+        privacyPolicyUrl: function() {}
       };
   
       // Initialize the FirebaseUI Widget using Firebase.
