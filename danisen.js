@@ -19,6 +19,10 @@ firebase.initializeApp(firebaseConfig);
             signInSuccessWithAuthResult: function(authResult, redirectUrl) {
                 document.getElementById("danisen").innerHTML = "<button onclick='danisen.displayPlayers()'>Players</button><button onclick='danisen.displayMatches()'>Matches</button><div id='content'></div>";
                 return false;
+            },
+            
+            uiShown: function() {
+                document.getElementsByClassName('firebaseui-tos firebaseui-tospp-full-message')[0].innerHTML = "";
             }
         },
 
