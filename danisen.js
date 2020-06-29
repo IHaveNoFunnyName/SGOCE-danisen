@@ -41,9 +41,7 @@ danisen.updatePlayers = function(players) {
         danisen.players[player.name].rank = player.rank;
         danisen.players[player.name].key = snapPlayer.key;
         danisen.players[player.name].id = player.discordID;
-        console.log(player.rank);
     })
-
 
     if (danisen.page == 1){
         danisen.displayPlayers();
