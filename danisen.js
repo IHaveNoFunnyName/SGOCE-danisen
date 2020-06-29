@@ -33,12 +33,17 @@ danisen.updatePlayers = function(players) {
 
     danisen.players = {};
 
-    for(var player in players){
-        danisen.players[players[player].name] = {};
-        danisen.players[players[player].name].rank = players[player].rank;
-        danisen.players[players[player].name].key = player;
-        danisen.players[players[player].name].id = players[player].discordID;
-    }
+    players.forEach(function (snapPlayer) {
+
+        player = snapPlayer.val();
+
+        danisen.players[player.name] = {};
+        danisen.players[player.name].rank = player.rank;
+        danisen.players[player.name].key = snapPlayer.key;
+        danisen.players[player.name].id = player.discordID;
+        console.log(player.rank);
+    })
+
 
     if (danisen.page == 1){
         danisen.displayPlayers();
@@ -67,9 +72,11 @@ danisen.displayPlayers = function() {
 
     string = "";
     for (var player in danisen.players) {
-        string += player + " at rank: " + danisen.ranks[danisen.players[player].rank];
-        string += "<br>";
+        string = (player + " at rank: " + danisen.ranks[danisen.players[player].rank]) + string;
+        string = "<br>" + string;
     }
+
+    string += "<br><br>";
 
     string += "Name: <input id=playerName></input><br>"
     string += "Discord Tag: <input id=playerID></input><br>"
@@ -214,6 +221,6 @@ danisen.keytodiscord = function(key) {
     return name;
 }
 
-danisen.db.ref("Players/").on('value', function(snapshot) {danisen.updatePlayers(snapshot.val());});
+danisen.db.ref("Players/").orderByChild('rank').on('value', function(snapshot) {danisen.updatePlayers(snapshot);});
 
 danisen.db.ref("Matches/").on('value', function(snapshot) {danisen.updateMatches(snapshot.val());});
