@@ -110,7 +110,13 @@ danisen.displayPlayers = function() {
     string += "Name: <input id=playerName></input><br>"
     string += "Discord Tag: <input id=playerID></input><br>"
     string += "Rank: <input id=playerRank></input><br>"
-    string += "<button onclick=\"danisen.addPlayer()\">Add player</button>"
+    string += "<button onclick=\"danisen.addPlayer()\">Add player</button><br><br>"
+    
+    string += "<select id='removeList'>"
+    for (var player in danisen.players) {
+        string += "<option value='" + danisen.players[player].key + "'>" + player + "</option>";
+    }
+    string += "</select><button onclick=\"danisen.removePlayer()\">Delete player</button>"
     
     document.getElementById("content").innerHTML = string;
     danisen.page = 1;
@@ -131,6 +137,11 @@ danisen.addPlayer = function() {
             rank: rank,
         });
     }
+}
+
+danisen.removePlayer = function() {
+
+    danisen.db.ref('Players/' + document.getElementById("removeList").value).remove();
 }
 
 danisen.displayMatches = function() {
