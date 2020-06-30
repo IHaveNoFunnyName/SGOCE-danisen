@@ -109,7 +109,13 @@ danisen.displayPlayers = function() {
 
     string += "Name: <input id=playerName></input><br>"
     string += "Discord Tag: <input id=playerID></input><br>"
-    string += "Rank: <input id=playerRank></input><br>"
+    string += "Rank: <select id=playerRank>"
+    
+    for (var i=0; i < danisen.ranks.length; i++){
+        string += "<option value='" + i + "'>" + danisen.ranks[i] + "</option>";
+    }
+
+    string +="</select><br>"
     string += "<button onclick=\"danisen.addPlayer()\">Add player</button><br><br>"
     
     string += "<select id='removeList'>"
