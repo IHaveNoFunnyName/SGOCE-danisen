@@ -19,7 +19,7 @@ firebase.initializeApp(firebaseConfig);
 var uiConfig = {
     callbacks: {
         signInSuccessWithAuthResult: function(authResult, redirectUrl) {
-            document.getElementById("danisen").innerHTML = "<button onclick='danisen.displayPlayers()'>Players</button><button onclick='danisen.displayMatches()'>Matches</button><div id='content'></div>";
+            document.getElementById("danisen").innerHTML = "<button onclick='danisen.displayPlayers()'>Players</button><button onclick='danisen.displayMatches()'>Weekly Matches</button><div id='content'></div>";
             danisen.admin = authResult.additionalUserInfo.providerId ? 1 : 0;
             return false;
         },
