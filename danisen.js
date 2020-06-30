@@ -101,7 +101,7 @@ danisen.displayPlayers = function() {
 
     string = "";
     for (var player in danisen.players) {
-        string = (player + " at rank: " + danisen.ranks[danisen.players[player].rank]) + string;
+        string = ("<b>" + player + "</b>:  " + danisen.ranks[danisen.players[player].rank]) + string;
         string = "<br>" + string;
     }
 
@@ -161,7 +161,9 @@ danisen.displayMatches = function() {
         string += "<br>";
     }
 
-    string += "<br><br> Discord ping copy/paste: <br><br>";
+    string += "<br><br> <h3>Discord ping copy/paste</h3>";
+
+    string += "<button onclick=\"danisen.copyToClipboard()\">I'm lazy, copy to clipboard for me</button> <br><br>"
 
     for (var match in danisen.matches) {
         string += danisen.keytodiscord(danisen.matches[match].p1) + " vs " + danisen.keytodiscord(danisen.matches[match].p2);
@@ -274,6 +276,21 @@ danisen.keytodiscord = function(key) {
     return name;
 }
 
+danisen.copyToClipboard = function() { 
+    //Lazy as fuck, but whatever  
+    str = "";
+    for (var match in danisen.matches) {
+        str += danisen.keytodiscord(danisen.matches[match].p1) + " vs " + danisen.keytodiscord(danisen.matches[match].p2) + "\n";
+    }
+    const el = document.createElement('textarea');
+    el.value = str;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+}
+
 danisen.db.ref("Players/").orderByChild('rank').on('value', function(snapshot) {danisen.updatePlayers(snapshot);});
 
 danisen.db.ref("Matches/").on('value', function(snapshot) {danisen.updateMatches(snapshot.val());});
+
