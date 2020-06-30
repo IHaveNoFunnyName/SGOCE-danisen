@@ -1,5 +1,12 @@
 main {
   max-width: 38rem;
   padding: 2rem;
+  line-height: 1.5;
   margin: auto;
+  font-family: "Helvetica", "Arial", sans-serif;
+}
+
+h2 {
+  margin-top: 1em;
+  padding-top: 1em;
 }
