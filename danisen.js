@@ -19,8 +19,9 @@ firebase.initializeApp(firebaseConfig);
 var uiConfig = {
     callbacks: {
         signInSuccessWithAuthResult: function(authResult, redirectUrl) {
-            document.getElementById("danisen").innerHTML = "<button onclick='danisen.displayPlayers()'>Players</button><button onclick='danisen.displayMatches()'>Weekly Matches</button><div id='content'></div>";
+            document.getElementById("danisen").innerHTML = "<button onclick='danisen.displayPlayers()'>Rankings</button><button onclick='danisen.displayMatches()'>Weekly Matches</button><div id='content'></div>";
             danisen.admin = authResult.additionalUserInfo.providerId ? 1 : 0;
+            danisen.displayPlayers();
             return false;
         },
         
@@ -156,12 +157,12 @@ danisen.removePlayer = function() {
 
 danisen.displayMatches = function() {
     
-    string = "";
+    string = "<br>";
     
     string += danisen.admin ? "<button onclick='danisen.createMatches()'>Generate Matches</button><br>" : "";
     
     for (var match in danisen.matches) {
-        string += danisen.keytoname(danisen.matches[match].p1) + " vs " + danisen.keytoname(danisen.matches[match].p2);
+        string += "<b>" +  danisen.keytoname(danisen.matches[match].p1) + "</b>" + " vs " + "<b>" + danisen.keytoname(danisen.matches[match].p2)+ "</b>";
         string += "<br>";
     }
     if (danisen.admin){
