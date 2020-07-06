@@ -58,6 +58,7 @@ danisen.page = 0;
 
 danisen.ranks = ["Unranked", "C -2", "C -1", "C 0", "C 1", "C 2", "B -2", "B -1", "B 0", "B 1", "B 2", "A -2", "A -1", "A 0", "A 1", "A 2", "S 0", "S 1", "S 2", "S 3", "S 4", "SSS"];
 danisen.ranksLetter = ["0", "1", "1", "1", "1", "1", "2", "2", "2", "2", "2", "3", "3", "3", "3", "3", "4", "4", "4", "4", "4", "5"];
+danisen.error = "";
 
 danisen.db = firebase.database();
 
@@ -173,6 +174,9 @@ danisen.displayMatches = function() {
         string += "<b>" +  danisen.keytoname(danisen.matches[match].p1) + "</b>" + " vs " + "<b>" + danisen.keytoname(danisen.matches[match].p2)+ "</b>";
         string += "<br>";
     }
+
+    string += "<br>" + danisen.error;
+
     if (danisen.admin){
         
         string += "<br><br> <h3>Discord ping copy/paste</h3>";
@@ -193,6 +197,8 @@ danisen.displayMatches = function() {
 }
 
 danisen.createMatches = function() {
+
+    danisen.error = "";
     
     matchMatrix = [];
     
@@ -248,6 +254,8 @@ danisen.createMatches = function() {
                         matchMade = 1;
                     } else {
                         console.log("Couldn't find match for: " + danisen.keytoname(matchMatrix[player1].key));
+                        danisen.error += "Couldn't find match for: " + danisen.keytoname(matchMatrix[player1].key) + "<br>";
+                        danisen.displayMatches();
                     }
                 }
             }
