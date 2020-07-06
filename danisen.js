@@ -75,6 +75,7 @@ danisen.updatePlayers = function(players) {
         danisen.players[player.name].rank = player.rank;
         danisen.players[player.name].key = snapPlayer.key;
         danisen.players[player.name].id = player.discordID;
+        danisen.players[player.name].desiredMatches = player.desiredMatches ? player.desiredMatches : 1;
     })
     
     if (danisen.page == 1){
@@ -185,121 +186,146 @@ danisen.displayMatches = function() {
 }
 
 danisen.createMatches = function() {
-    danisen.db.ref("Players/").once('value', function(snapshot) {
+    
+    matchMatrix = [];
+    
+    for(player in danisen.players){
         
-        val = snapshot.val();
-        playerarray = [];
-        
-        
-        for(var player in val){
-            
-            //player = key, eg -MAukJwmoswJ7ws8pZ_I
-            playerarray.push(player);
-            
+        if(danisen.players[player].desiredMatches) {
+            matchMatrix.push({
+                key: danisen.players[player].key,
+                remaining: danisen.players[player].desiredMatches                
+            })
         }
+    }
+    
+    //For each player, 
+    
+    for(var i in matchMatrix){
         
-        matchMatrix = [];
+        matchMatrix[i].validMatches = []
         
-        danisen.db.ref("Matches").remove();
-        
-        for(var i = 0; i < playerarray.length; i++) {
-            matchMatrix[i] = [];
+        for(var j in matchMatrix){
             
-            for(var j = 0; j < playerarray.length; j++) {
-                
-                if (i == j) {
+            rank1 = danisen.keytorank(matchMatrix[i].key);
+            rank2 = danisen.keytorank(matchMatrix[j].key);
+            
+            if( (rank1 == rank2 ||
+                rank1 == rank2 - 1 ||
+                rank1 == rank2 + 1) &&
+                i != j) {
                     
-                } else if(danisen.keytorank(playerarray[i]) == danisen.keytorank(playerarray[j])) {
-                    matchMatrix[i].push(j);
-                } else if(danisen.keytorank(playerarray[i]) == (+danisen.keytorank(playerarray[j]) - 1)) {
-                    matchMatrix[i].push(j);
-                } else if(danisen.keytorank(playerarray[i]) == (+danisen.keytorank(playerarray[j]) + 1)) {
-                    matchMatrix[i].push(j);
+                    matchMatrix[i].validMatches.push(matchMatrix[j].key);
+                    
                 }
             }
         }
         
-        for (var i in matchMatrix){
-            
-            var j = matchMatrix[i][Math.floor(Math.random() * matchMatrix[i].length)];
-            
-            if(j) {
-                danisen.addMatch(playerarray[i], playerarray[j]);
-            }
-            //i = p1 j = p2
-            
-            //Need to delete jth matchMatrix
-            matchMatrix[j] = [];
-            
-            //Then delete all is and js from matchMatrix
-            
-            for (var k in matchMatrix) {
-                for (var l in matchMatrix[k]) {
-                    if (matchMatrix[k][l] == i) {
-                        matchMatrix[k].splice(l, 1);
-                    } else if (matchMatrix[k][l] == j) {
-                        matchMatrix[k].splice(l, 1);
+        //Sort array so that lowest amount of valid opponents gets selected first, minimizing the chance of someone having no valid matches
+        matchMatrix = matchMatrix.sort(function(a, b){return a.validMatches.length - b.validMatches.length});
+        
+        var player1;
+        var player2;
+        var matchMade = 1;
+        
+        while(matchMade){
+            matchMade = 0;
+            for (player1 in matchMatrix) {
+                if(matchMatrix[player1].remaining){
+                    player2 = matchMatrix[player1].validMatches[Math.floor(Math.random() * matchMatrix[player1].validMatches.length)];
+                    
+                    if(player2) {
+                        danisen.addMatch(matchMatrix[player1].key, player2);
+                        danisen.deleteKeyFromMatrix(matchMatrix, matchMatrix[player1].key);
+                        danisen.deleteKeyFromMatrix(matchMatrix, player2);
+                        matchMade = 1;
+                    } else {
+                        console.log("Couldn't find match for: " + danisen.keytoname(matchMatrix[player1].key));
                     }
                 }
             }
-            
+        }
+    }
+    
+    danisen.deleteKeyFromMatrix = function(matrix, key) {
+        
+        var i;
+        
+        for(i in matrix) {
+            if (matrix[i].key == key){
+                break;
+            }
         }
         
+        matrix[i].remaining --;
+        if(matrix[i].remaining == -1) {
+            i++;
+        }
         
-    });
-}
-
-danisen.addMatch = function(p1, p2) {
-    
-    pathid = danisen.db.ref("Matches").push().getKey();
-    danisen.db.ref("Matches/" + pathid).set({
-        p1: p1,
-        p2: p2
-    });
-}
-
-danisen.keytorank = function(key) {
-    var rank;
-    
-    for (var player in danisen.players) {
-        if (danisen.players[player].key == key) {rank = danisen.ranksLetter[danisen.players[player].rank]}
+        if (matrix[i].remaining == 0){
+            for (var j in matrix){
+                for (var p2 in matrix[j].validMatches){
+                    if (matrix[j].validMatches[p2] == key){
+                        matrix[j].validMatches.splice(p2,1);
+                    }
+                }
+            }
+        }
     }
-    return rank;
-}
-
-danisen.keytoname = function(key) {
-    var name;
     
-    for (var player in danisen.players) {
-        if (danisen.players[player].key == key) {name = player}
+    danisen.addMatch = function(p1, p2) {
+        
+        pathid = danisen.db.ref("Matches").push().getKey();
+        danisen.db.ref("Matches/" + pathid).set({
+            p1: p1,
+            p2: p2
+        });
+        console.log(danisen.keytoname(p1) + " vs " + danisen.keytoname(p2));
     }
-    return name;
-}
-
-danisen.keytodiscord = function(key) {
-    var name;
     
-    for (var player in danisen.players) {
-        if (danisen.players[player].key == key) {name = danisen.players[player].id}
+    danisen.keytorank = function(key) {
+        var rank;
+        
+        for (var player in danisen.players) {
+            if (danisen.players[player].key == key) {rank = danisen.ranksLetter[danisen.players[player].rank]}
+        }
+        return +rank;
     }
-    return name;
-}
-
-danisen.copyToClipboard = function() { 
-    //Lazy as fuck, but whatever  
-    str = "";
-    for (var match in danisen.matches) {
-        str += danisen.keytodiscord(danisen.matches[match].p1) + " vs " + danisen.keytodiscord(danisen.matches[match].p2) + "\n";
+    
+    danisen.keytoname = function(key) {
+        var name;
+        
+        for (var player in danisen.players) {
+            if (danisen.players[player].key == key) {name = player}
+        }
+        return name;
     }
-    const el = document.createElement('textarea');
-    el.value = str;
-    document.body.appendChild(el);
-    el.select();
-    document.execCommand('copy');
-    document.body.removeChild(el);
-}
-
-danisen.db.ref("Players/").orderByChild('rank').on('value', function(snapshot) {danisen.updatePlayers(snapshot);});
-
-danisen.db.ref("Matches/").on('value', function(snapshot) {danisen.updateMatches(snapshot.val());});
-
+    
+    danisen.keytodiscord = function(key) {
+        var name;
+        
+        for (var player in danisen.players) {
+            if (danisen.players[player].key == key) {name = danisen.players[player].id}
+        }
+        return name;
+    }
+    
+    danisen.copyToClipboard = function() { 
+        //Lazy as fuck, but whatever  
+        str = "";
+        for (var match in danisen.matches) {
+            str += danisen.keytodiscord(danisen.matches[match].p1) + " vs " + danisen.keytodiscord(danisen.matches[match].p2) + "\n";
+        }
+        const el = document.createElement('textarea');
+        el.value = str;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+    }
+    
+    danisen.db.ref("Players/").orderByChild('rank').on('value', function(snapshot) {danisen.updatePlayers(snapshot);});
+    
+    danisen.db.ref("Matches/").on('value', function(snapshot) {danisen.updateMatches(snapshot.val());});
+    
+    
