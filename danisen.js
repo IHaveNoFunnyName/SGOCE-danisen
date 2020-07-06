@@ -127,7 +127,14 @@ danisen.displayPlayers = function() {
         for (var player in danisen.players) {
             string += "<option value='" + danisen.players[player].key + "'>" + player + "</option>";
         }
-        string += "</select><button onclick=\"danisen.removePlayer()\">Delete player</button>"
+        string += "</select><button onclick=\"danisen.removePlayer()\">Delete player</button><br><br>"
+        
+        string += "<select id='desiredList'>"
+        for (var player in danisen.players) {
+            string += "<option value='" + danisen.players[player].key + "'>" + player + "</option>";
+        }
+        string += "<input id='desiredX'></input>"
+        string += "</select><button onclick=\"danisen.setDesiredMatches()\">Set number of matches</button>"
     }
     
     document.getElementById("content").innerHTML = string;
@@ -322,6 +329,12 @@ danisen.createMatches = function() {
         el.select();
         document.execCommand('copy');
         document.body.removeChild(el);
+    }
+    
+    danisen.setDesiredMatches = function() {
+        var key = document.getElementById("desiredList").value;
+        var x = document.getElementById("desiredX").value;
+        danisen.db.ref("Players/" + key).update({"desiredMatches": +x});
     }
     
     danisen.db.ref("Players/").orderByChild('rank').on('value', function(snapshot) {danisen.updatePlayers(snapshot);});
