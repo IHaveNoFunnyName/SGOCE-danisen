@@ -157,7 +157,7 @@ danisen.addPlayer = function() {
         danisen.db.ref("Players/" + pathid).set({
             name: name,
             discordID: id,
-            rank: rank,
+            rank: +rank,
         });
     }
 }
