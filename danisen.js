@@ -77,6 +77,9 @@ danisen.updatePlayers = function(players) {
         danisen.players[player.name].key = snapPlayer.key;
         danisen.players[player.name].id = player.discordID;
         danisen.players[player.name].desiredMatches = player.desiredMatches ? player.desiredMatches : 1;
+        if (danisen.players[player.name].desiredMatches == 1) {
+            danisen.players[player.name].desiredMatches = 2;
+        }
     })
     
     if (danisen.page == 1){
