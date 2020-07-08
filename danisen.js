@@ -198,6 +198,8 @@ danisen.displayMatches = function() {
 
 danisen.createMatches = function() {
 
+    danisen.db.ref("Matches/").remove();
+
     danisen.error = "";
     
     matchMatrix = [];
