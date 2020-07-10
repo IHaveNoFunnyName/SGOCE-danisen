@@ -262,8 +262,8 @@ danisen.reportMatch = function() {
     danisen.db.ref("MatchHistory/" + pathid).set({
         p1: p1,
         p2: p2,
-        p1Score: p1Score,
-        p2Score: p2Score,
+        p1Score: +p1Score,
+        p2Score: +p2Score,
         time: Date.now()
     });
     
