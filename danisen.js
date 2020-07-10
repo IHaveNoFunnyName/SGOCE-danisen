@@ -19,8 +19,9 @@ firebase.initializeApp(firebaseConfig);
 var uiConfig = {
     callbacks: {
         signInSuccessWithAuthResult: function(authResult, redirectUrl) {
-            document.getElementById("danisen").innerHTML = "<button onclick='danisen.displayPlayers()'>Rankings</button><button onclick='danisen.displayMatches()'>Weekly Matches</button><div id='content'></div>";
+            document.getElementById("danisen").innerHTML = "<button onclick='danisen.displayPlayers()'>Rankings</button><button onclick='danisen.displayMatches()'>Weekly Matches</button><button onclick='danisen.displayHistory()'>Match History</button>";
             danisen.admin = authResult.additionalUserInfo.providerId ? 1 : 0;
+            document.getElementById("danisen").innerHTML += danisen.admin ? "<button onclick='danisen.displayReport()'>Report Matches</button><div id='content'></div>" : "<div id='content'></div>";
             danisen.displayPlayers();
             return false;
         },
@@ -53,7 +54,8 @@ ui.start('#firebaseui-auth-container', uiConfig);
 
 
 danisen.players = {};
-danisen.matches = {};
+danisen.matches = [];
+danisen.matchHistory = [];
 danisen.page = 0;
 
 danisen.ranks = ["Unranked", "C -2", "C -1", "C 0", "C 1", "C 2", "B -2", "B -1", "B 0", "B 1", "B 2", "A -2", "A -1", "A 0", "A 1", "A 2", "S 0", "S 1", "S 2", "S 3", "S 4", "SSS"];
@@ -95,13 +97,32 @@ danisen.updateMatches = function(matches) {
     for (var match in matches){
         danisen.matches.push({
             p1: matches[match].p1,
-            p2: matches[match].p2
+            p2: matches[match].p2,
+            key: match
         });
     }
     
     if (danisen.page == 2){
         danisen.displayMatches();
+    } else if (danisen.page == 4){
+        danisen.displayReport();
     }
+}
+
+danisen.updateHistory = function(matches) {
+
+    danisen.matchHistory = [];
+
+    for (var match in matches){
+        danisen.matchHistory.push({
+            p1: matches[match].p1,
+            p2: matches[match].p2,
+            p1Score: matches[match].p1Score,
+            p2Score: matches[match].p2Score,
+            time: matches[match].time
+        })
+    }
+
 }
 
 
@@ -177,9 +198,9 @@ danisen.displayMatches = function() {
         string += "<b>" +  danisen.keytoname(danisen.matches[match].p1) + "</b>" + " vs " + "<b>" + danisen.keytoname(danisen.matches[match].p2)+ "</b>";
         string += "<br>";
     }
-
+    
     string += "<br>" + danisen.error;
-
+    
     if (danisen.admin){
         
         string += "<br><br> <h3>Discord ping copy/paste</h3>";
@@ -199,10 +220,60 @@ danisen.displayMatches = function() {
     
 }
 
+danisen.displayReport = function() {
+    
+    string = "<br><select id='report'>";
+    
+    for(match in danisen.matches){
+        string += "<option value='" + match + "'>" + danisen.keytoname(danisen.matches[match].p1) + " vs " + danisen.keytoname(danisen.matches[match].p2) + "</option>";
+    }
+    string += "</select><br>";
+    
+    string += "P1:<select id=p1Score><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;P2:<select id=p2Score><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select><br>";
+    
+    string += "<button onClick='danisen.reportMatch()'>Report Match</button>";
+    
+    document.getElementById("content").innerHTML = string;
+    danisen.page = 4;
+    
+}
+
+danisen.displayHistory = function() {
+
+    string = "<br>";
+
+    for(match in danisen.matchHistory) {
+        string += "<b>" + danisen.keytoname(danisen.matchHistory[match].p1) + "</b>: " + danisen.matchHistory[match].p1Score + " vs <b>" + danisen.keytoname(danisen.matchHistory[match].p2) + "</b>: " + danisen.matchHistory[match].p2Score;
+    }
+
+    document.getElementById("content").innerHTML = string;
+    danisen.page = 3;
+}
+
+danisen.reportMatch = function() {
+    
+    match = document.getElementById("report").value;
+    p1 = danisen.matches[match].p1;
+    p2 = danisen.matches[match].p2;
+    p1Score = document.getElementById("p1Score").value;
+    p2Score = document.getElementById("p2Score").value;
+    
+    pathid = danisen.db.ref("MatchHistory").push().getKey();
+    danisen.db.ref("MatchHistory/" + pathid).set({
+        p1: p1,
+        p2: p2,
+        p1Score: p1Score,
+        p2Score: p2Score,
+        time: Date.now()
+    });
+    
+    danisen.db.ref('Matches/' + danisen.matches[match].key).remove();     
+}
+
 danisen.createMatches = function() {
-
+    
     danisen.db.ref("Matches/").remove();
-
+    
     danisen.error = "";
     
     matchMatrix = [];
@@ -221,7 +292,8 @@ danisen.createMatches = function() {
     
     for(var i in matchMatrix){
         
-        matchMatrix[i].validMatches = []
+        matchMatrix[i].validMatches = [];
+        matchMatrix[i].validMatches2w = [];
         
         for(var j in matchMatrix){
             
@@ -233,7 +305,11 @@ danisen.createMatches = function() {
                 rank1 == rank2 + 1) &&
                 i != j) {
                     
-                    matchMatrix[i].validMatches.push(matchMatrix[j].key);
+                    matchMatrix[i].validMatches2w.push(matchMatrix[j].key);
+                    
+                    if (danisen.matchNotRepeat(matchMatrix[i].key), matchMatrix[j].key) {
+                        matchMatrix[i].validMatches.push(matchMatrix[j].key);
+                    }
                     
                 }
             }
@@ -258,13 +334,26 @@ danisen.createMatches = function() {
                         danisen.deleteKeyFromMatrix(matchMatrix, player2);
                         matchMade = 1;
                     } else {
-                        console.log("Couldn't find match for: " + danisen.keytoname(matchMatrix[player1].key));
-                        danisen.error += "Couldn't find match for: " + danisen.keytoname(matchMatrix[player1].key) + "<br>";
-                        danisen.displayMatches();
+                        
+                        // select again from +2w
+                        
+                        if(player2) {
+                            danisen.addMatch(matchMatrix[player1].key, player2);
+                            danisen.deleteKeyFromMatrix(matchMatrix, matchMatrix[player1].key);
+                            danisen.deleteKeyFromMatrix(matchMatrix, player2);
+                        } else {
+                            console.log("Couldn't find match for: " + danisen.keytoname(matchMatrix[player1].key));
+                            danisen.error += "Couldn't find match for: " + danisen.keytoname(matchMatrix[player1].key) + "<br>";
+                            danisen.displayMatches();
+                        }
                     }
                 }
             }
         }
+    }
+    
+    danisen.matchNotRepeat = function(p1, p2) {
+        return true;
     }
     
     danisen.deleteKeyFromMatrix = function(matrix, key) {
@@ -285,6 +374,11 @@ danisen.createMatches = function() {
         if (matrix[i].remaining == 0){
             for (var j in matrix){
                 for (var p2 in matrix[j].validMatches){
+                    if (matrix[j].validMatches[p2] == key){
+                        matrix[j].validMatches.splice(p2,1);
+                    }
+                }
+                for (var p2 in matrix[j].validMatches2w){
                     if (matrix[j].validMatches[p2] == key){
                         matrix[j].validMatches.splice(p2,1);
                     }
@@ -353,5 +447,7 @@ danisen.createMatches = function() {
     danisen.db.ref("Players/").orderByChild('rank').on('value', function(snapshot) {danisen.updatePlayers(snapshot);});
     
     danisen.db.ref("Matches/").on('value', function(snapshot) {danisen.updateMatches(snapshot.val());});
+
+    danisen.db.ref("MatchHistory/").on('value', function(snapshot) {danisen.updateHistory(snapshot.val());});
     
     
