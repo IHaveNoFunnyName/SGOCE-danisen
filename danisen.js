@@ -243,7 +243,7 @@ danisen.displayHistory = function() {
     string = "<br>";
 
     for(match in danisen.matchHistory) {
-        string += "<b>" + danisen.keytoname(danisen.matchHistory[match].p1) + "</b>: " + danisen.matchHistory[match].p1Score + " vs <b>" + danisen.keytoname(danisen.matchHistory[match].p2) + "</b>: " + danisen.matchHistory[match].p2Score;
+        string += "<b>" + danisen.keytoname(danisen.matchHistory[match].p1) + "</b>: " + danisen.matchHistory[match].p1Score + " vs <b>" + danisen.keytoname(danisen.matchHistory[match].p2) + "</b>: " + danisen.matchHistory[match].p2Score + "<br>";
     }
 
     document.getElementById("content").innerHTML = string;
