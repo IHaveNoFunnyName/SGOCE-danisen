@@ -56,6 +56,7 @@ ui.start('#firebaseui-auth-container', uiConfig);
 danisen.players = {};
 danisen.matches = [];
 danisen.matchHistory = [];
+danisen.matchHistory2w = [];
 danisen.page = 0;
 
 danisen.ranks = ["Unranked", "C -2", "C -1", "C 0", "C 1", "C 2", "B -2", "B -1", "B 0", "B 1", "B 2", "A -2", "A -1", "A 0", "A 1", "A 2", "S 0", "S 1", "S 2", "S 3", "S 4", "SSS"];
@@ -78,10 +79,7 @@ danisen.updatePlayers = function(players) {
         danisen.players[player.name].rank = player.rank;
         danisen.players[player.name].key = snapPlayer.key;
         danisen.players[player.name].id = player.discordID;
-        danisen.players[player.name].desiredMatches = player.desiredMatches ? player.desiredMatches : 1;
-        if (danisen.players[player.name].desiredMatches == 1) {
-            danisen.players[player.name].desiredMatches = 2;
-        }
+        danisen.players[player.name].desiredMatches = player.desiredMatches;
     })
     
     if (danisen.page == 1){
@@ -112,6 +110,7 @@ danisen.updateMatches = function(matches) {
 danisen.updateHistory = function(matches) {
 
     danisen.matchHistory = [];
+    danisen.matchHistory2w = [];
 
     for (var match in matches){
         danisen.matchHistory.push({
@@ -121,6 +120,12 @@ danisen.updateHistory = function(matches) {
             p2Score: matches[match].p2Score,
             time: matches[match].time
         })
+        if (Date.now() - matches[match].time < 1209600000){
+            danisen.matchHistory2w.push({
+                p1: matches[match].p1,
+                p2: matches[match].p2,
+            })
+        }
     }
 
 }
@@ -307,7 +312,7 @@ danisen.createMatches = function() {
                     
                     matchMatrix[i].validMatches2w.push(matchMatrix[j].key);
                     
-                    if (danisen.matchNotRepeat(matchMatrix[i].key), matchMatrix[j].key) {
+                    if (!danisen.matchRepeat(matchMatrix[i].key, matchMatrix[j].key)) {
                         matchMatrix[i].validMatches.push(matchMatrix[j].key);
                     }
                     
@@ -327,7 +332,6 @@ danisen.createMatches = function() {
             for (player1 in matchMatrix) {
                 if(matchMatrix[player1].remaining){
                     player2 = matchMatrix[player1].validMatches[Math.floor(Math.random() * matchMatrix[player1].validMatches.length)];
-                    
                     if(player2) {
                         danisen.addMatch(matchMatrix[player1].key, player2);
                         danisen.deleteKeyFromMatrix(matchMatrix, matchMatrix[player1].key);
@@ -336,13 +340,18 @@ danisen.createMatches = function() {
                     } else {
                         
                         // select again from +2w
+
+                        player2 = matchMatrix[player1].validMatches2w[Math.floor(Math.random() * matchMatrix[player1].validMatches2w.length)];
                         
+
                         if(player2) {
                             danisen.addMatch(matchMatrix[player1].key, player2);
                             danisen.deleteKeyFromMatrix(matchMatrix, matchMatrix[player1].key);
                             danisen.deleteKeyFromMatrix(matchMatrix, player2);
+                            danisen.error += matchMatrix[player1].key + " vs " + player2 + " is a repeat match";
+                            danisen.displayMatches();
+                            matchMade  = 1;
                         } else {
-                            console.log("Couldn't find match for: " + danisen.keytoname(matchMatrix[player1].key));
                             danisen.error += "Couldn't find match for: " + danisen.keytoname(matchMatrix[player1].key) + "<br>";
                             danisen.displayMatches();
                         }
@@ -352,8 +361,19 @@ danisen.createMatches = function() {
         }
     }
     
-    danisen.matchNotRepeat = function(p1, p2) {
-        return true;
+    danisen.matchRepeat = function(p1, p2) {
+
+        var repeat = false;
+
+        for(match in danisen.matchHistory2w){
+
+            hp1 = danisen.matchHistory2w[match].p1;
+            hp2 = danisen.matchHistory2w[match].p2;
+            if ((p1 == hp1 || p1 == hp2) && (p2 == hp2 || p2 == hp2)){
+                repeat = true;
+            }
+        }
+        return repeat;
     }
     
     danisen.deleteKeyFromMatrix = function(matrix, key) {
@@ -379,8 +399,8 @@ danisen.createMatches = function() {
                     }
                 }
                 for (var p2 in matrix[j].validMatches2w){
-                    if (matrix[j].validMatches[p2] == key){
-                        matrix[j].validMatches.splice(p2,1);
+                    if (matrix[j].validMatches2w[p2] == key){
+                        matrix[j].validMatches2w.splice(p2,1);
                     }
                 }
             }
