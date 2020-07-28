@@ -59,8 +59,8 @@ danisen.matchHistory = [];
 danisen.matchHistory2w = [];
 danisen.page = 0;
 
-danisen.ranks = ["Unranked", "C -2", "C -1", "C 0", "C 1", "C 2", "B -2", "B -1", "B 0", "B 1", "B 2", "A -2", "A -1", "A 0", "A 1", "A 2", "S 0", "S 1", "S 2", "S 3", "S 4", "SSS"];
-danisen.ranksLetter = ["0", "1", "1", "1", "1", "1", "2", "2", "2", "2", "2", "3", "3", "3", "3", "3", "4", "4", "4", "4", "4", "5"];
+danisen.ranks = ["Unranked", "C -2", "C -1", "C 0", "C 1", "C 2", "B -2", "B -1", "B 0", "B 1", "B 2", "A -2", "A -1", "A 0", "A 1", "A 2", "S 0", "S 1", "S 2", "S 3", "S 4", "S 5"];
+danisen.ranksLetter = ["0", "1", "1", "1", "1", "1", "2", "2", "2", "2", "2", "3", "3", "3", "3", "3", "4", "4", "4", "4", "4", "4"];
 danisen.error = "";
 
 danisen.db = firebase.database();
@@ -331,24 +331,28 @@ danisen.createMatches = function() {
             matchMade = 0;
             for (player1 in matchMatrix) {
                 if(matchMatrix[player1].remaining){
-                    player2 = matchMatrix[player1].validMatches[Math.floor(Math.random() * matchMatrix[player1].validMatches.length)];
-                    if(player2) {
-                        danisen.addMatch(matchMatrix[player1].key, player2);
+                    player2 = Math.floor(Math.random() * matchMatrix[player1].validMatches.length)
+                    player2Key = matchMatrix[player1].validMatches[player2];
+                    if(player2Key) {
+                        danisen.addMatch(matchMatrix[player1].key, player2Key);
+                        matchMatrix[player1].validMatches.splice(player2, 1);
                         danisen.deleteKeyFromMatrix(matchMatrix, matchMatrix[player1].key);
-                        danisen.deleteKeyFromMatrix(matchMatrix, player2);
+                        danisen.deleteKeyFromMatrix(matchMatrix, player2Key);
                         matchMade = 1;
                     } else {
                         
                         // select again from +2w
 
-                        player2 = matchMatrix[player1].validMatches2w[Math.floor(Math.random() * matchMatrix[player1].validMatches2w.length)];
+                        player2 = Math.floor(Math.random() * matchMatrix[player1].validMatches2w.length)
+                        player2Key = matchMatrix[player1].validMatches2w[player2];
                         
 
-                        if(player2) {
-                            danisen.addMatch(matchMatrix[player1].key, player2);
+                        if(player2Key) {
+                            danisen.addMatch(matchMatrix[player1].key, player2Key);
+                            matchMatrix[player1].validMatches2w.splice(player2, 1);
                             danisen.deleteKeyFromMatrix(matchMatrix, matchMatrix[player1].key);
-                            danisen.deleteKeyFromMatrix(matchMatrix, player2);
-                            danisen.error += matchMatrix[player1].key + " vs " + player2 + " is a repeat match";
+                            danisen.deleteKeyFromMatrix(matchMatrix, player2Key);
+                            danisen.error += danisen.keytoname(matchMatrix[player1].key) + " vs " + danisen.keytoname(player2Key) + " is a repeat match";
                             danisen.displayMatches();
                             matchMade  = 1;
                         } else {
@@ -369,7 +373,7 @@ danisen.createMatches = function() {
 
             hp1 = danisen.matchHistory2w[match].p1;
             hp2 = danisen.matchHistory2w[match].p2;
-            if ((p1 == hp1 || p1 == hp2) && (p2 == hp2 || p2 == hp2)){
+            if ((p1 == hp1 || p1 == hp2) && (p2 == hp1 || p2 == hp2)){
                 repeat = true;
             }
         }
@@ -469,5 +473,3 @@ danisen.createMatches = function() {
     danisen.db.ref("Matches/").on('value', function(snapshot) {danisen.updateMatches(snapshot.val());});
 
     danisen.db.ref("MatchHistory/").on('value', function(snapshot) {danisen.updateHistory(snapshot.val());});
-    
-    
