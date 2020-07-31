@@ -57,7 +57,10 @@ danisen.players = {};
 danisen.matches = [];
 danisen.matchHistory = [];
 danisen.matchHistory2w = [];
+danisen.unconfMatches = [];
 danisen.page = 0;
+danisen.subpage = 0;
+danisen.discordReport = 0;
 
 danisen.ranks = ["Unranked", "C -2", "C -1", "C 0", "C 1", "C 2", "B -2", "B -1", "B 0", "B 1", "B 2", "A -2", "A -1", "A 0", "A 1", "A 2", "S 0", "S 1", "S 2", "S 3", "S 4", "S 5"];
 danisen.ranksLetter = ["0", "1", "1", "1", "1", "1", "2", "2", "2", "2", "2", "3", "3", "3", "3", "3", "4", "4", "4", "4", "4", "4"];
@@ -128,6 +131,27 @@ danisen.updateHistory = function(matches) {
         }
     }
 
+}
+
+danisen.updateUnconfMatches = function(matches) {
+    danisen.unconfMatches = [];
+
+    matches.forEach(function (snapMatch) {
+
+        match = snapMatch.val();
+
+        danisen.unconfMatches.push({
+            attach: match.attach,
+            link: match.link,
+            time: match.time,
+            text: match.message,
+            key: snapMatch.key
+        });
+    });
+
+    if (danisen.page == 4){
+        danisen.displayReport();
+    }
 }
 
 
@@ -237,10 +261,35 @@ danisen.displayReport = function() {
     string += "P1:<select id=p1Score><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;P2:<select id=p2Score><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select><br>";
     
     string += "<button onClick='danisen.reportMatch()'>Report Match</button>";
+
+    string += "<br>" + danisen.getMessage(danisen.discordReport) + "</br>";
+
+    string += "<button onClick='danisen.prev()'>Previous</button><button onClick='danisen.delete()'>Delete</button><button onClick='danisen.next()'>Next</button>"
     
     document.getElementById("content").innerHTML = string;
     danisen.page = 4;
     
+}
+
+danisen.getMessage = function(n) {
+    return danisen.unconfMatches[n].text;
+}
+
+danisen.next = function() {
+
+    if (danisen.unconfMatches[danisen.discordReport + 1]) danisen.discordReport++;
+    danisen.displayReport();
+}
+
+danisen.prev = function() {
+    if (danisen.unconfMatches[danisen.discordReport - 1]) danisen.discordReport--;
+    danisen.displayReport();
+}
+
+danisen.delete = function() {
+
+    danisen.db.ref('UnconfirmedMatchHistory/' + danisen.unconfMatches[danisen.discordReport].key).remove();
+
 }
 
 danisen.displayHistory = function() {
@@ -473,3 +522,5 @@ danisen.createMatches = function() {
     danisen.db.ref("Matches/").on('value', function(snapshot) {danisen.updateMatches(snapshot.val());});
 
     danisen.db.ref("MatchHistory/").on('value', function(snapshot) {danisen.updateHistory(snapshot.val());});
+
+    danisen.db.ref("UnconfirmedMatchHistory/").on('value', function(snapshot) {danisen.updateUnconfMatches(snapshot);});
