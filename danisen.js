@@ -121,7 +121,8 @@ danisen.updateHistory = function(matches) {
             p2: matches[match].p2,
             p1Score: matches[match].p1Score,
             p2Score: matches[match].p2Score,
-            time: matches[match].time
+            time: matches[match].time,
+            replay: matches[match].replay ? matches[match].replay : ""
         })
         if (Date.now() - matches[match].time < 1209600000){
             danisen.matchHistory2w.push({
@@ -130,6 +131,8 @@ danisen.updateHistory = function(matches) {
             })
         }
     }
+
+    danisen.matchHistory.sort((a, b) => (a.time < b.time) ? 1 : -1)
     
 }
 
@@ -328,7 +331,8 @@ danisen.displayHistory = function() {
     string = "<br>";
     
     for(match in danisen.matchHistory) {
-        string += "<b>" + danisen.keytoname(danisen.matchHistory[match].p1) + "</b>: " + danisen.matchHistory[match].p1Score + " vs <b>" + danisen.keytoname(danisen.matchHistory[match].p2) + "</b>: " + danisen.matchHistory[match].p2Score + "<br>";
+        string += "<b>" + danisen.keytoname(danisen.matchHistory[match].p1) + "</b>: " + danisen.matchHistory[match].p1Score + " vs <b>" + danisen.keytoname(danisen.matchHistory[match].p2) + "</b>: " + danisen.matchHistory[match].p2Score;
+        string += " Replay link: <a href='" + danisen.matchHistory[match].replay + "'>" + danisen.matchHistory[match].replay + "</a><br>";
     }
     
     document.getElementById("content").innerHTML = string;
