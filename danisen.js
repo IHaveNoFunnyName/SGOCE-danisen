@@ -358,8 +358,6 @@ danisen.reportMatch = function() {
         replay: replay,
         time: time
     });
-    
-    danisen.db.ref('Matches/' + danisen.matches[match].key).remove();     
 }
 
 danisen.createMatches = function() {
