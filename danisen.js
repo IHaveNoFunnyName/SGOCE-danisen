@@ -264,7 +264,7 @@ danisen.displayReport = function() {
         
         string += "P1:<select id=p1Score><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;P2:<select id=p2Score><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select><br>";
         
-        string += "Replay Link:<input id=replay></input>"
+        string += "Replay Link:<input id=replay></input><br>"
         
         string += "<button onClick='danisen.reportMatch()'>Report Match</button>";
     } else if (danisen.subpage == 2){
@@ -283,6 +283,8 @@ danisen.displayReport = function() {
         string += "<button onClick='danisen.reportMatch()'>Report Match</button>";
         
         string += "<br>" + danisen.getMessage(danisen.discordReport).split("\n").join("<br />") + "</br>";
+
+        string += "<a href='" + danisen.getLink(danisen.discordReport) + "'>Link to Discord message</a><br>"
         
         string += "<button onClick='danisen.prev()'>Previous</button><button onClick='danisen.delete()'>Delete</button><button onClick='danisen.next()'>Next</button>"
     }
@@ -298,6 +300,10 @@ danisen.getMessage = function(n) {
 
 danisen.getMessageAttach = function(n) {
     return danisen.unconfMatches[n] ? danisen.unconfMatches[n].attach : "";
+}
+
+danisen.getLink = function(n) {
+    return danisen.unconfMatches[n] ? danisen.unconfMatches[n].link : "";
 }
 
 danisen.next = function() {
