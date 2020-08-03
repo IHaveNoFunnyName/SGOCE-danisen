@@ -21,7 +21,7 @@ var uiConfig = {
         signInSuccessWithAuthResult: function(authResult, redirectUrl) {
             document.getElementById("danisen").innerHTML = "<button onclick='danisen.displayPlayers()'>Rankings</button><button onclick='danisen.displayMatches()'>Weekly Matches</button><button onclick='danisen.displayHistory()'>Match History</button>";
             danisen.admin = authResult.additionalUserInfo.providerId ? 1 : 0;
-            document.getElementById("danisen").innerHTML += danisen.admin ? "<button onclick='danisen.displayReport()'>Report Matches</button><div id='content'></div>" : "<div id='content'></div>";
+            document.getElementById("danisen").innerHTML += danisen.admin ? "<button onclick='danisen.subpage = 0; danisen.displayReport()'>Report Matches</button><div id='content'></div>" : "<div id='content'></div>";
             danisen.displayPlayers();
             return false;
         },
@@ -111,10 +111,10 @@ danisen.updateMatches = function(matches) {
 }
 
 danisen.updateHistory = function(matches) {
-
+    
     danisen.matchHistory = [];
     danisen.matchHistory2w = [];
-
+    
     for (var match in matches){
         danisen.matchHistory.push({
             p1: matches[match].p1,
@@ -130,16 +130,16 @@ danisen.updateHistory = function(matches) {
             })
         }
     }
-
+    
 }
 
 danisen.updateUnconfMatches = function(matches) {
     danisen.unconfMatches = [];
-
+    
     matches.forEach(function (snapMatch) {
-
+        
         match = snapMatch.val();
-
+        
         danisen.unconfMatches.push({
             attach: match.attach,
             link: match.link,
@@ -148,7 +148,7 @@ danisen.updateUnconfMatches = function(matches) {
             key: snapMatch.key
         });
     });
-
+    
     if (danisen.page == 4){
         danisen.displayReport();
     }
@@ -251,20 +251,41 @@ danisen.displayMatches = function() {
 
 danisen.displayReport = function() {
     
-    string = "<br><select id='report'>";
+    string = "<button onClick='danisen.subpage = 1; danisen.displayReport()'>Report weekly match</button>"
+    string += "<button onClick='danisen.subpage = 2; danisen.displayReport()'>Review Discord report</button>"
     
-    for(match in danisen.matches){
-        string += "<option value='" + match + "'>" + danisen.keytoname(danisen.matches[match].p1) + " vs " + danisen.keytoname(danisen.matches[match].p2) + "</option>";
+    if (danisen.subpage == 1){
+        string += "<br><select id='report'>";
+        
+        for(match in danisen.matches){
+            string += "<option value='" + match + "'>" + danisen.keytoname(danisen.matches[match].p1) + " vs " + danisen.keytoname(danisen.matches[match].p2) + "</option>";
+        }
+        string += "</select><br>";
+        
+        string += "P1:<select id=p1Score><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;P2:<select id=p2Score><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select><br>";
+        
+        string += "Replay Link:<input id=replay></input>"
+        
+        string += "<button onClick='danisen.reportMatch()'>Report Match</button>";
+    } else if (danisen.subpage == 2){
+        
+        string += "<br><select id='report'>";
+        
+        for(match in danisen.matches){
+            string += "<option value='" + match + "'>" + danisen.keytoname(danisen.matches[match].p1) + " vs " + danisen.keytoname(danisen.matches[match].p2) + "</option>";
+        }
+        string += "</select><br>";
+        
+        string += "P1:<select id=p1Score><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;P2:<select id=p2Score><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select><br>";
+        
+        string += "Replay Link:<input id=replay value='" + danisen.getMessageAttach(danisen.discordReport) + "'></input><br>"
+
+        string += "<button onClick='danisen.reportMatch()'>Report Match</button>";
+        
+        string += "<br>" + danisen.getMessage(danisen.discordReport).split("\n").join("<br />") + "</br>";
+        
+        string += "<button onClick='danisen.prev()'>Previous</button><button onClick='danisen.delete()'>Delete</button><button onClick='danisen.next()'>Next</button>"
     }
-    string += "</select><br>";
-    
-    string += "P1:<select id=p1Score><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;P2:<select id=p2Score><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select><br>";
-    
-    string += "<button onClick='danisen.reportMatch()'>Report Match</button>";
-
-    string += "<br>" + danisen.getMessage(danisen.discordReport) + "</br>";
-
-    string += "<button onClick='danisen.prev()'>Previous</button><button onClick='danisen.delete()'>Delete</button><button onClick='danisen.next()'>Next</button>"
     
     document.getElementById("content").innerHTML = string;
     danisen.page = 4;
@@ -272,11 +293,15 @@ danisen.displayReport = function() {
 }
 
 danisen.getMessage = function(n) {
-    return danisen.unconfMatches[n].text;
+    return danisen.unconfMatches[n] ? danisen.unconfMatches[n].text : "";
+}
+
+danisen.getMessageAttach = function(n) {
+    return danisen.unconfMatches[n] ? danisen.unconfMatches[n].attach : "";
 }
 
 danisen.next = function() {
-
+    
     if (danisen.unconfMatches[danisen.discordReport + 1]) danisen.discordReport++;
     danisen.displayReport();
 }
@@ -287,19 +312,19 @@ danisen.prev = function() {
 }
 
 danisen.delete = function() {
-
+    
     danisen.db.ref('UnconfirmedMatchHistory/' + danisen.unconfMatches[danisen.discordReport].key).remove();
-
+    
 }
 
 danisen.displayHistory = function() {
-
+    
     string = "<br>";
-
+    
     for(match in danisen.matchHistory) {
         string += "<b>" + danisen.keytoname(danisen.matchHistory[match].p1) + "</b>: " + danisen.matchHistory[match].p1Score + " vs <b>" + danisen.keytoname(danisen.matchHistory[match].p2) + "</b>: " + danisen.matchHistory[match].p2Score + "<br>";
     }
-
+    
     document.getElementById("content").innerHTML = string;
     danisen.page = 3;
 }
@@ -391,11 +416,11 @@ danisen.createMatches = function() {
                     } else {
                         
                         // select again from +2w
-
+                        
                         player2 = Math.floor(Math.random() * matchMatrix[player1].validMatches2w.length)
                         player2Key = matchMatrix[player1].validMatches2w[player2];
                         
-
+                        
                         if(player2Key) {
                             danisen.addMatch(matchMatrix[player1].key, player2Key);
                             matchMatrix[player1].validMatches2w.splice(player2, 1);
@@ -415,11 +440,11 @@ danisen.createMatches = function() {
     }
     
     danisen.matchRepeat = function(p1, p2) {
-
+        
         var repeat = false;
-
+        
         for(match in danisen.matchHistory2w){
-
+            
             hp1 = danisen.matchHistory2w[match].p1;
             hp2 = danisen.matchHistory2w[match].p2;
             if ((p1 == hp1 || p1 == hp2) && (p2 == hp1 || p2 == hp2)){
@@ -520,7 +545,7 @@ danisen.createMatches = function() {
     danisen.db.ref("Players/").orderByChild('rank').on('value', function(snapshot) {danisen.updatePlayers(snapshot);});
     
     danisen.db.ref("Matches/").on('value', function(snapshot) {danisen.updateMatches(snapshot.val());});
-
+    
     danisen.db.ref("MatchHistory/").on('value', function(snapshot) {danisen.updateHistory(snapshot.val());});
-
+    
     danisen.db.ref("UnconfirmedMatchHistory/").on('value', function(snapshot) {danisen.updateUnconfMatches(snapshot);});
