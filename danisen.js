@@ -342,6 +342,8 @@ danisen.reportMatch = function() {
     p2 = danisen.matches[match].p2;
     p1Score = document.getElementById("p1Score").value;
     p2Score = document.getElementById("p2Score").value;
+    replay = document.getElementById("replay").value;
+    time = danisen.subpage == 2 ? danisen.unconfMatches[danisen.discordReport].time : Date.now();
     
     pathid = danisen.db.ref("MatchHistory").push().getKey();
     danisen.db.ref("MatchHistory/" + pathid).set({
@@ -349,7 +351,8 @@ danisen.reportMatch = function() {
         p2: p2,
         p1Score: +p1Score,
         p2Score: +p2Score,
-        time: Date.now()
+        replay: replay,
+        time: time
     });
     
     danisen.db.ref('Matches/' + danisen.matches[match].key).remove();     
