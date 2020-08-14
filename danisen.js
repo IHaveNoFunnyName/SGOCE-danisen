@@ -254,8 +254,8 @@ danisen.displayMatches = function() {
 
 danisen.displayReport = function() {
     
-    string = "<button onClick='danisen.subpage = 1; danisen.displayReport()'>Report weekly match</button>"
-    string += "<button onClick='danisen.subpage = 2; danisen.displayReport()'>Review Discord report</button>"
+    string = "<button onClick='danisen.subpage = 0; danisen.displayReport()'>Review Discord report</button>"
+    string += "<button onClick='danisen.subpage = 1; danisen.displayReport()'>Report weekly match</button>"
     
     if (danisen.subpage == 1){
         string += "<br><select id='report'>";
@@ -270,7 +270,7 @@ danisen.displayReport = function() {
         string += "Replay Link:<input id=replay></input><br>"
         
         string += "<button onClick='danisen.reportMatch()'>Report Match</button>";
-    } else if (danisen.subpage == 2){
+    } else if (danisen.subpage == 0){
         
         string += "<br><select id='report'>";
         
@@ -358,6 +358,10 @@ danisen.reportMatch = function() {
         replay: replay,
         time: time
     });
+
+    if(danisen.subpage == 2){
+        //delete current report
+    }
 }
 
 danisen.createMatches = function() {
