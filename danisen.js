@@ -108,6 +108,8 @@ danisen.updateMatches = function(matches) {
     } else if (danisen.page == 4){
         danisen.displayReport();
     }
+
+    danisen.loading(0);
 }
 
 danisen.updateHistory = function(matches) {
@@ -382,6 +384,8 @@ danisen.reportMatch = function() {
     if(danisen.subpage == 0){
         danisen.delete();
     }
+
+    danisen.loading(1);
 }
 
 danisen.createMatches = function() {
