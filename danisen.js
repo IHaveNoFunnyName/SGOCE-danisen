@@ -343,11 +343,16 @@ danisen.displayHistory = function() {
     
     for(match in danisen.matchHistory) {
         string += "<b>" + danisen.keytoname(danisen.matchHistory[match].p1) + "</b>: " + danisen.matchHistory[match].p1Score + " vs <b>" + danisen.keytoname(danisen.matchHistory[match].p2) + "</b>: " + danisen.matchHistory[match].p2Score;
-        string += " Replay link: <a href='" + danisen.matchHistory[match].replay + "'>" + danisen.matchHistory[match].replay + "</a><br>";
+        string += danisen.matchHistory[match].replay ? " Replay link: <a href='" + danisen.matchHistory[match].replay + "'>" + danisen.lastURLSection(danisen.matchHistory[match].replay) + "</a><br>" : "<br>";
     }
     
     document.getElementById("content").innerHTML = string;
     danisen.page = 3;
+}
+
+danisen.lastURLSection = function(string) {
+    split = string.split("/");
+    return split[split.length - 1];
 }
 
 danisen.reportMatch = function() {
