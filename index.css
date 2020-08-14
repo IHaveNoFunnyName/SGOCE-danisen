@@ -1,7 +1,38 @@
-main {
+.danisen {
   max-width: 38rem;
   padding: 2rem;
   line-height: 1.5;
   margin: auto;
   font-family: "Helvetica", "Arial", sans-serif;
+}
+
+.loader {
+  position: absolute;
+  left: 40%;
+  top: 25%;
+  border: 16px solid #f3f3f3; /* Light grey */
+  border-top: 16px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  animation: spin 2s linear infinite;
+  z-index: 99;
+  display: none;
+}
+
+.loader2 {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0; 
+  opacity: 0.8;
+  background-color: white;
+  z-index: 98;
+  display: none;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

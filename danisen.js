@@ -585,6 +585,16 @@ danisen.createMatches = function() {
         var x = document.getElementById("desiredX").value;
         danisen.db.ref("Players/" + key).update({"desiredMatches": +x});
     }
+
+    danisen.loading = function(x) {
+        if (x){
+            document.getElementById("loader1").style.display = "inline";
+            document.getElementById("loader2").style.display = "inline";
+        } else {
+            document.getElementById("loader1").style.display = "none";
+            document.getElementById("loader2").style.display = "none";
+        }
+    }
     
     danisen.db.ref("Players/").orderByChild('rank').on('value', function(snapshot) {danisen.updatePlayers(snapshot);});
     
