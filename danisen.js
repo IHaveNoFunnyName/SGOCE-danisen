@@ -148,7 +148,8 @@ danisen.updateUnconfMatches = function(matches) {
             link: match.link,
             time: match.time,
             text: match.message,
-            key: snapMatch.key
+            key: snapMatch.key,
+            id: match.id
         });
     });
     
@@ -283,13 +284,15 @@ danisen.displayReport = function() {
         
         string += "Replay Link:<input id=replay value='" + danisen.getMessageAttach(danisen.discordReport) + "'></input><br>"
 
-        string += "<button onClick='danisen.reportMatch()'>Report Match</button>";
+        string += "<br>Discord report by " + danisen.getName(danisen.discordReport) + " at " + danisen.getTime(danisen.discordReport) + ":"
         
         string += "<br>" + danisen.getMessage(danisen.discordReport).split("\n").join("<br />") + "</br>";
 
         string += "<a href='" + danisen.getLink(danisen.discordReport) + "'>Link to Discord message</a><br>"
         
-        string += "<button onClick='danisen.prev()'>Previous</button><button onClick='danisen.delete()'>Delete</button><button onClick='danisen.next()'>Next</button>"
+        string += "<button onClick='danisen.prev()'>Previous</button><button onClick='danisen.reportMatch()'>Report</button><button onClick='danisen.next()'>Next</button>"
+
+        string += "<br><br><button onClick='danisen.delete()'>Delete troll report</button>"
     }
     
     document.getElementById("content").innerHTML = string;
@@ -307,6 +310,14 @@ danisen.getMessageAttach = function(n) {
 
 danisen.getLink = function(n) {
     return danisen.unconfMatches[n] ? danisen.unconfMatches[n].link : "";
+}
+
+danisen.getName = function(n) {
+    return danisen.unconfMatches[n] ? danisen.discordtoname(danisen.unconfMatches[n].id) : "";
+}
+
+danisen.getTime = function(n) {
+    return danisen.unconfMatches[n] ? new Date(danisen.unconfMatches[n].time) : "";
 }
 
 danisen.next = function() {
@@ -347,7 +358,7 @@ danisen.reportMatch = function() {
     p1Score = document.getElementById("p1Score").value;
     p2Score = document.getElementById("p2Score").value;
     replay = document.getElementById("replay").value;
-    time = danisen.subpage == 2 ? danisen.unconfMatches[danisen.discordReport].time : Date.now();
+    time = danisen.subpage == 0 ? danisen.unconfMatches[danisen.discordReport].time : Date.now();
     
     pathid = danisen.db.ref("MatchHistory").push().getKey();
     danisen.db.ref("MatchHistory/" + pathid).set({
@@ -359,8 +370,8 @@ danisen.reportMatch = function() {
         time: time
     });
 
-    if(danisen.subpage == 2){
-        //delete current report
+    if(danisen.subpage == 0){
+        danisen.delete();
     }
 }
 
@@ -533,6 +544,15 @@ danisen.createMatches = function() {
         
         for (var player in danisen.players) {
             if (danisen.players[player].key == key) {name = danisen.players[player].id}
+        }
+        return name;
+    }
+
+    danisen.discordtoname = function(id) {
+        var name;
+        
+        for (var player in danisen.players) {
+            if (danisen.players[player].id == id) {name = player}
         }
         return name;
     }
