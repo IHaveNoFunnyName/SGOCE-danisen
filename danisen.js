@@ -133,6 +133,10 @@ danisen.updateHistory = function(matches) {
     }
 
     danisen.matchHistory.sort((a, b) => (a.time < b.time) ? 1 : -1)
+
+    if (danisen.page == 3) {
+        danisen.displayHistory();
+    }
     
 }
 
