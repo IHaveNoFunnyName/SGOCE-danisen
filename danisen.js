@@ -23,6 +23,16 @@ var uiConfig = {
             danisen.admin = authResult.additionalUserInfo.providerId ? 1 : 0;
             document.getElementById("danisen").innerHTML += danisen.admin ? "<button onclick='danisen.subpage = 0; danisen.displayReport()'>Report Matches</button><div id='content'></div>" : "<div id='content'></div>";
             danisen.displayPlayers();
+            
+            danisen.db.ref("Players/").orderByChild('rank').on('value', function(snapshot) {danisen.updatePlayers(snapshot);});
+            
+            danisen.db.ref("Matches/").on('value', function(snapshot) {danisen.updateMatches(snapshot.val());});
+            
+            danisen.db.ref("PrevMatches/").on('value', function(snapshot) {danisen.updatePrevMatches(snapshot.val());});
+            
+            danisen.db.ref("MatchHistory/").on('value', function(snapshot) {danisen.updateHistory(snapshot.val());});
+            
+            danisen.db.ref("UnconfirmedMatchHistory/").on('value', function(snapshot) {danisen.updateUnconfMatches(snapshot);});
             return false;
         },
         
@@ -110,7 +120,7 @@ danisen.updateMatches = function(matches) {
     } else if (danisen.page == 4){
         danisen.displayReport();
     }
-
+    
     danisen.loading(0);
 }
 
@@ -131,7 +141,7 @@ danisen.updatePrevMatches = function(matches) {
     } else if (danisen.page == 4){
         danisen.displayReport();
     }
-
+    
     danisen.loading(0);
 }
 
@@ -156,9 +166,9 @@ danisen.updateHistory = function(matches) {
             })
         }
     }
-
+    
     danisen.matchHistory.sort((a, b) => (a.time < b.time) ? 1 : -1)
-
+    
     if (danisen.page == 3) {
         danisen.displayHistory();
     }
@@ -251,7 +261,7 @@ danisen.removePlayer = function() {
 }
 
 danisen.displayMatches = function() {
-
+    
     matches = danisen.matches.concat(danisen.prevmatches);
     
     string = "<br>";
@@ -286,7 +296,7 @@ danisen.displayReport = function() {
     
     string = "<button onClick='danisen.subpage = 0; danisen.displayReport()'>Review Discord report</button>"
     string += "<button onClick='danisen.subpage = 1; danisen.displayReport()'>Report weekly match</button>"
-
+    
     matches = danisen.matches.concat(danisen.prevmatches);
     
     if (danisen.subpage == 1){
@@ -314,15 +324,15 @@ danisen.displayReport = function() {
         string += "P1:<select id=p1Score><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;P2:<select id=p2Score><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select><br>";
         
         string += "Replay Link:<input id=replay value='" + danisen.getMessageAttach(danisen.discordReport) + "'></input><br>"
-
+        
         string += "<br>Discord report by " + danisen.getName(danisen.discordReport) + " at " + danisen.getTime(danisen.discordReport) + ":"
         
         string += "<br>" + danisen.getMessage(danisen.discordReport).split("\n").join("<br />") + "</br>";
-
+        
         string += "<a href='" + danisen.getLink(danisen.discordReport) + "'>Link to Discord message</a><br>"
         
         string += "<button onClick='danisen.prev()'>Previous</button><button onClick='danisen.reportMatch()'>Report</button><button onClick='danisen.next()'>Next</button>"
-
+        
         string += "<br><br><button onClick='danisen.delete()'>Delete troll report</button>"
     }
     
@@ -387,7 +397,7 @@ danisen.lastURLSection = function(string) {
 }
 
 danisen.reportMatch = function() {
-
+    
     matches = danisen.matches.concat(danisen.prevmatches);
     match = document.getElementById("report").value;
     p1 = matches[match].p1;
@@ -398,95 +408,85 @@ danisen.reportMatch = function() {
     time = danisen.subpage == 0 ? danisen.unconfMatches[danisen.discordReport].time : Date.now();
     
     if (p1Score !== "5" && p2Score !== "5") {alert("Neither of the players scores are 5")} else {
-
-    pathid = danisen.db.ref("MatchHistory").push().getKey();
-    danisen.db.ref("MatchHistory/" + pathid).set({
-        p1: p1,
-        p2: p2,
-        p1Score: +p1Score,
-        p2Score: +p2Score,
-        replay: replay,
-        time: time
-    });
-    danisen.loading(1);
-    if(danisen.subpage == 0){
-        danisen.delete();
-    }
+        
+        pathid = danisen.db.ref("MatchHistory").push().getKey();
+        danisen.db.ref("MatchHistory/" + pathid).set({
+            p1: p1,
+            p2: p2,
+            p1Score: +p1Score,
+            p2Score: +p2Score,
+            replay: replay,
+            time: time
+        });
+        danisen.loading(1);
+        if(danisen.subpage == 0){
+            danisen.delete();
+        }
     }
 }
 
-    danisen.keytorank = function(key) {
-        var rank;
-        
-        for (var player in danisen.players) {
-            if (danisen.players[player].key == key) {rank = danisen.ranksLetter[danisen.players[player].rank]}
-        }
-        return +rank;
-    }
+danisen.keytorank = function(key) {
+    var rank;
     
-    danisen.keytoname = function(key) {
-        var name;
-        
-        for (var player in danisen.players) {
-            if (danisen.players[player].key == key) {name = player}
-        }
-        return name;
+    for (var player in danisen.players) {
+        if (danisen.players[player].key == key) {rank = danisen.ranksLetter[danisen.players[player].rank]}
     }
-    
-    danisen.keytodiscord = function(key) {
-        var name;
-        
-        for (var player in danisen.players) {
-            if (danisen.players[player].key == key) {name = danisen.players[player].id}
-        }
-        return name;
-    }
+    return +rank;
+}
 
-    danisen.discordtoname = function(id) {
-        var name;
-        
-        for (var player in danisen.players) {
-            if (danisen.players[player].id == id) {name = player}
-        }
-        return name;
-    }
+danisen.keytoname = function(key) {
+    var name;
     
-    danisen.copyToClipboard = function() { 
-        //Lazy as fuck, but whatever  
-        str = "";
-        for (var match in danisen.matches) {
-            str += danisen.keytodiscord(danisen.matches[match].p1) + " vs " + danisen.keytodiscord(danisen.matches[match].p2) + "\n";
-        }
-        const el = document.createElement('textarea');
-        el.value = str;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
+    for (var player in danisen.players) {
+        if (danisen.players[player].key == key) {name = player}
     }
-    
-    danisen.setDesiredMatches = function() {
-        var key = document.getElementById("desiredList").value;
-        var x = document.getElementById("desiredX").value;
-        danisen.db.ref("Players/" + key).update({"desiredMatches": +x});
-    }
+    return name;
+}
 
-    danisen.loading = function(x) {
-        if (x){
-            document.getElementById("loader1").style.display = "inline";
-            document.getElementById("loader2").style.display = "inline";
-        } else {
-            document.getElementById("loader1").style.display = "none";
-            document.getElementById("loader2").style.display = "none";
-        }
+danisen.keytodiscord = function(key) {
+    var name;
+    
+    for (var player in danisen.players) {
+        if (danisen.players[player].key == key) {name = danisen.players[player].id}
     }
-    
-    danisen.db.ref("Players/").orderByChild('rank').on('value', function(snapshot) {danisen.updatePlayers(snapshot);});
-    
-    danisen.db.ref("Matches/").on('value', function(snapshot) {danisen.updateMatches(snapshot.val());});
+    return name;
+}
 
-    danisen.db.ref("PrevMatches/").on('value', function(snapshot) {danisen.updatePrevMatches(snapshot.val());});
+danisen.discordtoname = function(id) {
+    var name;
     
-    danisen.db.ref("MatchHistory/").on('value', function(snapshot) {danisen.updateHistory(snapshot.val());});
-    
-    danisen.db.ref("UnconfirmedMatchHistory/").on('value', function(snapshot) {danisen.updateUnconfMatches(snapshot);});
+    for (var player in danisen.players) {
+        if (danisen.players[player].id == id) {name = player}
+    }
+    return name;
+}
+
+danisen.copyToClipboard = function() { 
+    //Lazy as fuck, but whatever  
+    str = "";
+    for (var match in danisen.matches) {
+        str += danisen.keytodiscord(danisen.matches[match].p1) + " vs " + danisen.keytodiscord(danisen.matches[match].p2) + "\n";
+    }
+    const el = document.createElement('textarea');
+    el.value = str;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+}
+
+danisen.setDesiredMatches = function() {
+    var key = document.getElementById("desiredList").value;
+    var x = document.getElementById("desiredX").value;
+    danisen.db.ref("Players/" + key).update({"desiredMatches": +x});
+}
+
+danisen.loading = function(x) {
+    if (x){
+        document.getElementById("loader1").style.display = "inline";
+        document.getElementById("loader2").style.display = "inline";
+    } else {
+        document.getElementById("loader1").style.display = "none";
+        document.getElementById("loader2").style.display = "none";
+    }
+}
